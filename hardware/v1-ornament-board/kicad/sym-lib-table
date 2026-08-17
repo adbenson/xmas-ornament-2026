@@ -1,0 +1,10 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "ws2812b_2020") (type "KiCad") (uri "${KIPRJMOD}/libs/ws2812b_2020.kicad_sym") (options "") (descr "WS2812B-2020-V6 LED (LCSC C52917434, converted from EasyEDA/JLCPCB export via easyeda2kicad)"))
+	(lib (name "xiao_samd21") (type "KiCad") (uri "${KIPRJMOD}/libs/xiao_samd21.kicad_sym") (options "") (descr "Seeed XIAO SAMD21 (from Seeed-Studio/OPL_Kicad_Library, via V0)"))
+	(lib (name "joystick_alps") (type "KiCad") (uri "${KIPRJMOD}/libs/skrhabe010_joystick.kicad_sym") (options "") (descr "ALPS SKRHABE010 joystick (authoritative export, via V0)"))
+	(lib (name "74xGxx") (type "KiCad") (uri "${KICAD10_SYMBOL_DIR}/74xGxx.kicad_symdir") (options "") (descr "74xGxx symbols"))
+	(lib (name "Device") (type "KiCad") (uri "${KICAD10_SYMBOL_DIR}/Device.kicad_symdir") (options "") (descr "Generic symbols for common devices"))
+	(lib (name "Battery_Management") (type "KiCad") (uri "${KICAD10_SYMBOL_DIR}/Battery_Management.kicad_symdir") (options "") (descr "Battery charging/management ICs"))
+	(lib (name "Connector") (type "KiCad") (uri "${KICAD10_SYMBOL_DIR}/Connector.kicad_symdir") (options "") (descr "Generic connectors"))
+)

@@ -1,0 +1,8 @@
+# KiCad auto-backup archives and lock files - redundant with git history itself
+*-backups/
+~*.lck
+fp-info-cache
+
+# Pre-existing independent repos - each has its own history, not nested/submoduled here
+hardware/v0-test-board/
+hardware/v1-ornament-board/kicad/.history/

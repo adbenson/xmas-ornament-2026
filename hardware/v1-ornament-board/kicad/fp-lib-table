@@ -1,0 +1,11 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "footprints") (type "KiCad") (uri "${KIPRJMOD}/libs/footprints.pretty") (options "") (descr "Project-local footprints: WS2812B-2020 LED, Xiao SAMD21, ALPS joystick"))
+	(lib (name "Capacitor_SMD") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Capacitor_SMD.pretty") (options "") (descr "Surface mount capacitors"))
+	(lib (name "Package_TO_SOT_SMD") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Package_TO_SOT_SMD.pretty") (options "") (descr "Surface mount transistor packages"))
+	(lib (name "Resistor_SMD") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Resistor_SMD.pretty") (options "") (descr "Surface mount resistors"))
+	(lib (name "LED_SMD") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/LED_SMD.pretty") (options "") (descr "Surface mount LEDs"))
+	(lib (name "Diode_SMD") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Diode_SMD.pretty") (options "") (descr "Surface mount diodes"))
+	(lib (name "Connector_JST") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Connector_JST.pretty") (options "") (descr "JST connectors"))
+	(lib (name "Fuse") (type "KiCad") (uri "${KICAD10_FOOTPRINT_DIR}/Fuse.pretty") (options "") (descr "Fuses and PTC resettable fuses"))
+)
