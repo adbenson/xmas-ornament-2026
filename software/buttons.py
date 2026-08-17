@@ -12,8 +12,7 @@ class Button:
     """A single momentary switch wired to a pin with an internal pull-up,
     so the pin reads HIGH when not pressed and LOW when pressed.
 
-    Call .update() once per loop, then read .pressed / .just_pressed /
-    .just_released.
+    Call .update() once per loop, then read isPressed()/wasPressed().
     """
 
     DEBOUNCE_SECONDS = 0.02
@@ -23,17 +22,13 @@ class Button:
         self._io.direction = digitalio.Direction.INPUT
         self._io.pull = digitalio.Pull.UP
 
-        self.pressed = False  # debounced current state
-        self.just_pressed = False  # True for one update() right after a press
-        self.just_released = False  # True for one update() right after a release
+        self._pressed = False  # debounced current state
+        self._pending_press = False  # set on a press, cleared by wasPressed()
 
         self._candidate = False
         self._candidate_since = time.monotonic()
 
     def update(self):
-        self.just_pressed = False
-        self.just_released = False
-
         raw_pressed = not self._io.value
         now = time.monotonic()
 
@@ -44,15 +39,27 @@ class Button:
             self._candidate_since = now
             return
 
-        if raw_pressed == self.pressed:
+        if raw_pressed == self._pressed:
             return  # nothing new to report
 
         if now - self._candidate_since < self.DEBOUNCE_SECONDS:
             return  # not held long enough yet
 
-        self.pressed = raw_pressed
-        self.just_pressed = raw_pressed
-        self.just_released = not raw_pressed
+        self._pressed = raw_pressed
+        if raw_pressed:
+            self._pending_press = True
+
+    def isPressed(self):
+        """True for as long as the button is currently held down."""
+        return self._pressed
+
+    def wasPressed(self):
+        """True the first time this is called after a press, then False
+        again until the next press (clears on read)."""
+        if self._pending_press:
+            self._pending_press = False
+            return True
+        return False
 
 
 class Joystick:

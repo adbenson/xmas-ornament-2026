@@ -45,15 +45,15 @@ color_index = 0
 while True:
     joystick.update()
 
-    if joystick.up.just_pressed and row > 0:
+    if joystick.up.wasPressed() and row > 0:
         row -= 1
-    if joystick.down.just_pressed and row < ROWS - 1:
+    if joystick.down.wasPressed() and row < ROWS - 1:
         row += 1
-    if joystick.left.just_pressed and col > 0:
+    if joystick.left.wasPressed() and col > 0:
         col -= 1
-    if joystick.right.just_pressed and col < COLS - 1:
+    if joystick.right.wasPressed() and col < COLS - 1:
         col += 1
-    if joystick.select.just_pressed:
+    if joystick.select.wasPressed():
         color_index = (color_index + 1) % len(COLORS)
 
     leds.clear()
