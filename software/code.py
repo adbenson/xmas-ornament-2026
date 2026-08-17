@@ -1,10 +1,9 @@
 """
-V1 ornament board bring-up test (CircuitPython, Seeed Xiao SAMD21).
+V1 ornament board test, using the leds/buttons abstractions.
 
-Simple test:
   1. Light up every LED, so you can see the whole strip is working.
-  2. Then use five LEDs near the middle of the board -- arranged in a
-     plus/cross shape -- to show which way the joystick is pointing.
+  2. Move a single lit LED around the grid with the joystick. Each
+     press moves it one cell; select changes its color.
 
 Pin numbers match the V1 schematic (see hardware/v1-ornament-board/).
 
@@ -15,66 +14,50 @@ CIRCUITPY/lib/.
 import time
 
 import board
-import digitalio
-import neopixel
 
-NUM_LEDS = 115
-PIXEL_PIN = board.D9  # -> level shifter -> LED chain
+from buttons import Joystick
+from leds import Leds, ROWS, COLS
 
-pixels = neopixel.NeoPixel(PIXEL_PIN, NUM_LEDS, brightness=0.2, auto_write=False)
+leds = Leds(board.D9)  # -> level shifter -> LED chain
 
-# These five LED numbers were picked (from the board's LED layout) to form
-# a plus/cross shape near the middle of the board.
-LED_CENTER = 54
-LED_UP = 67
-LED_DOWN = 41
-LED_LEFT = 53
-LED_RIGHT = 55
+joystick = Joystick(
+    up_pin=board.D6,
+    down_pin=board.D2,
+    left_pin=board.D0,
+    right_pin=board.D1,
+    select_pin=board.D3,
+)
 
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-YELLOW = (255, 255, 0)
-WHITE = (255, 255, 255)
-OFF = (0, 0, 0)
-
-
-def make_button(pin):
-    button = digitalio.DigitalInOut(pin)
-    button.direction = digitalio.Direction.INPUT
-    button.pull = digitalio.Pull.UP
-    return button
-
-
-joy_up = make_button(board.D6)
-joy_down = make_button(board.D2)
-joy_left = make_button(board.D0)
-joy_right = make_button(board.D1)
-joy_select = make_button(board.D3)
+COLORS = ((255, 255, 255), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0))
 
 # Step 1: light up every LED for a couple seconds, to check the whole chain.
-pixels.fill(WHITE)
-pixels.show()
+leds.fill((255, 255, 255))
+leds.show()
 time.sleep(2)
-pixels.fill(OFF)
-pixels.show()
+leds.clear()
+leds.show()
 
-# Step 2: show which way the joystick is pointing, using the cross of 5 LEDs.
+# Step 2: move a cursor around the grid with the joystick.
+row = ROWS // 2
+col = COLS // 2
+color_index = 0
+
 while True:
-    pixels.fill(OFF)
+    joystick.update()
 
-    if not joy_up.value:
-        pixels[LED_UP] = RED
-    elif not joy_down.value:
-        pixels[LED_DOWN] = BLUE
-    elif not joy_left.value:
-        pixels[LED_LEFT] = GREEN
-    elif not joy_right.value:
-        pixels[LED_RIGHT] = YELLOW
-    elif not joy_select.value:
-        pixels[LED_CENTER] = WHITE
-    else:
-        pixels[LED_CENTER] = (20, 20, 20)  # dim = idle, nothing pressed
+    if joystick.up.just_pressed and row > 0:
+        row -= 1
+    if joystick.down.just_pressed and row < ROWS - 1:
+        row += 1
+    if joystick.left.just_pressed and col > 0:
+        col -= 1
+    if joystick.right.just_pressed and col < COLS - 1:
+        col += 1
+    if joystick.select.just_pressed:
+        color_index = (color_index + 1) % len(COLORS)
 
-    pixels.show()
-    time.sleep(0.05)
+    leds.clear()
+    leds.set(row, col, COLORS[color_index])
+    leds.show()
+
+    time.sleep(0.02)
