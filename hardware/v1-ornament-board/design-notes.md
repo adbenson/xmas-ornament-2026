@@ -2,15 +2,88 @@
 
 ## Status
 
+**Ordered from JLCPCB, 2026-08-17** (2× SMT-assembled boards + 1 spare bare board). R1/R2 hit
+last-minute stock-outs; R1 swapped to RALEC `RTT022491FTH` (C102924, confirmed exact 0402/2.49k/±1%,
+and a Basic part — better than the original), R2's proposed replacement had a real 0603-vs-0402
+package mismatch (flagged, alternative found: Uniroyal `0402WGF1001TCE`/C11702). Invoice ($117.58
+total: $58.70 merchandise + $34.81 shipping + $3.52 tax + $20.55/35.01% import tax) and the
+assembly cost breakdown (Extended-component fee alone was ~$21.49, nearly matching base component
+cost) are logged in this project's Claude memory for future order estimation, not duplicated here —
+the invoice PDF itself (`invoice 2026-08-17.pdf`) has real PII, handle accordingly.
+
 **Fully routed (2026-08-15)**, `kicad-cli pcb drc`: 0 violations, 0 unconnected items. 115 LEDs
 (down from the original 121 — 6 removed to fit the joystick, see "LED grid"), 115 decoupling caps,
 Xiao SAMD21 (U1), 74AHCT1G125 level shifter (U2) + its cap (C122), the ALPS joystick (SW1), and a
 LiPo charge circuit (U3 MCP73832 + support components + JST-PH battery connector, see "Battery
 charging" below) — all wired in the schematic and fully routed on the PCB. `kicad-cli sch erc`:
-**0 errors**, only the same class of harmless pin-type warnings V0 saw. Fab package (Gerbers/BOM/
-CPL for JLCPCB) generated 2026-08-15, see "Fabrication package" below. **Mounting holes added
-2026-08-16 need manual rerouting** before re-ordering fab, see "Mounting holes" below. Other open
-items: battery polarity verification, PTC real-current sizing.
+**0 errors**, only the same class of harmless pin-type warnings V0 saw.
+
+**User-driven changes since 2026-08-16, done directly in the GUI** (verified against the live
+files, not taken on faith):
+- **Mounting holes removed** — the 4 holes from "Mounting holes" below are gone; the user will
+  revisit hole placement later.
+- **Back-side footprint count dropped from 6 to 3**: only **J1, U1, D123** remain on B.Cu now — U2
+  (level shifter), U3 (charge IC), and F1 (PTC fuse) were moved to the front. This changes the
+  JLCPCB front/back assembly split from "Fabrication package" below; that section's BOM/CPL split
+  is now stale on top of already being stale from the mounting holes.
+- **Trip indicator (D124, R3) removed from the PCB only** — **still present in the schematic**, a
+  real desync, not just in-progress work. If "Update PCB from Schematic" is ever run again, both
+  will silently reappear on the board. Left as-is per the user ("I might bring it back later") —
+  flagged here so it doesn't cause a surprise down the line. F1 (the PTC fuse itself) is untouched;
+  only the passive LED+resistor indicator branch across it is gone.
+- **Decorative silkscreen additions** made directly in the GUI — not catalogued here in detail,
+  user-owned per [[feedback_kicad_manual_layout]].
+
+**Full re-review (2026-08-16)**: re-ran `sch erc`/`pcb drc` and manually verified every power/data
+pin on the charge circuit, level shifter, and MCU against real datasheets/symbol pin definitions
+(not just net names) — no new wiring bugs. Two minor, harmless things found:
+- Two tiny (~0.5–0.7mm) dangling wire stubs in the schematic near U3's STAT pin, flagged by ERC as
+  off-grid/unconnected — confirmed pre-existing (present in the very first git commit), and
+  harmless (the real STAT connection is carried by proper junction-connected wires, these are just
+  leftover stub cruft). Cosmetic only; clean up next time the schematic's open if it bugs you.
+- One "isolated copper fill" DRC warning on the `+5V_LED` zone near (112, 98) — confirmed
+  *not* caused by the R1 change below (reproduced identically with R1 reverted to 10k). Likely the
+  same class of zone-fill/thermal-relief edge case as the dangling-GND-via finding from the original
+  routing pass — not investigated further, flagging in case it's ever worth a closer look.
+
+**Resolved (2026-08-16) — was never a via-placement bug at all.** The "GND via overlapping J1's
+MP pad" finding above turned out to be a **lost net assignment, not a clearance problem**: the user
+had deliberately set J1's two mechanical `MP` pads (confirmed electrically unconnected inside the
+real JST connector) to the `GND` net on purpose, both for routing convenience and slightly better
+board adhesion at that corner — a legitimate, intentional PCB-only net override (`MP` has no
+matching schematic pin, so this can only be set directly on the pad, not through the netlist). That
+override was silently lost at some point (most likely an "Update PCB from Schematic" sync, the same
+category of wipe documented earlier for LED/cap placement — anything PCB-only with no schematic
+counterpart doesn't survive a resync). Once the user reset both `MP` pads back to `GND` in the GUI,
+`kicad-cli pcb drc` dropped from 4 violations/1 unconnected item to **1 warning, 0 errors, 0
+unconnected items** — fixing this also silently resolved the "2 dangling GND vias" finding from the
+original routing pass (one of those vias was this same MP-pad contact point; once real net data was
+attached, the whole local copper island resolved as properly connected). **Only remaining item:**
+the `isolated_copper` warning on the `+5V_LED` zone near (112, 98) — checked for nearby footprints
+(none within 3mm), so it's a harmless disconnected copper sliver in the LED-grid fill pattern, not
+tied to any component. **Watch for this recurring**: since `MP`'s `GND` assignment lives only on the
+PCB with nothing in the schematic backing it up, any future "Update PCB from Schematic" will wipe it
+again — worth remembering to re-check/reapply after that specific operation, not a one-time fix.
+
+**R1 (charge current) bumped for the real cell (2026-08-16)**: now that the user has a 2Ah cell in
+hand (400mA continuous / 2A peak per its datasheet), R1 changed from the placeholder 10kΩ (~100mA)
+to **2.49kΩ (~401.6mA)** — see "Battery charging" below for the datasheet-sourced reasoning and a
+thermal caveat worth knowing about. Schematic and PCB both updated; fab BOM's R1 line updated to
+match but its LCSC part number needs resourcing at the next fab regen (marked TBD, not guessed).
+
+**Battery polarity and PTC thermal open items closed out by the user, 2026-08-16**: J1's pinout was
+checked against a charger from the same vendor as the actual battery pack (their verification, not
+mine — noted here rather than re-derived). F1/U3's thermal dissipation is now tied into the ground
+plane as well as the board's copper allowance allows, the user's own mitigation for the thermal
+caveat flagged in "Battery charging" below.
+
+**Fab package regenerated and ready (2026-08-16/17)** — Gerbers/BOM/CPL/hand-solder list all rebuilt
+from the current live board (post mounting-hole-removal, post front/back-split change, post R1/D122
+updates, post MP-pad fix, post silkscreen-artwork simplification — see "Fabrication package" below
+for that last one). `pcb drc` on the exact board these were generated from: 1 warning (the
+decorative isolated-copper item), 0 errors, 0 unconnected. Remaining open items: mounting hole
+placement (deferred, the user's call) and the D124/R3 schematic/PCB desync (intentional, per the
+user).
 
 ## Mounting holes (2026-08-16)
 
@@ -34,59 +107,100 @@ conflicts, not something to reflexively "fix" — the user is routing/placing ar
 **Fab package needs regenerating** (see "Fabrication package" below) once the user is done — the
 current Gerbers/drill files predate these holes entirely.
 
-## Fabrication package (2026-08-15)
+## Tooling holes (2026-08-24)
 
-Generated a complete JLCPCB fab + assembly package under `fab/`. **Assembly split: JLCPCB
-assembles the front only; the user hand-solders the 6 back-side parts** (this was the user's
-standing intent from the start of this task — an earlier back-and-forth about a "front"
-instruction was me misreading it, not a change in plan).
+The two mystery drill holes spotted in the JLCPCB-side gerber preview (one near the upper-left rim,
+one near the tab) turned out **not** to originate from this design at all — JLCPCB support confirmed
+they're **assembly tooling holes**, auto-added by JLCPCB itself for their SMT pick-and-place jig when
+none are supplied in the order. Spec, from
+[their tooling-hole article](https://jlcpcb.com/help/article/how-to-add-tooling-holes-for-pcb-assembly-order):
+**1.152mm round NPTH, 0.148mm solder mask expansion, 2–3 holes, opposite corners, as far apart as
+practical**; empty space preferred, copper area acceptable if there's no room.
 
-**Stale as of 2026-08-16**: this package predates the mounting holes above and the rerouting they
-require — the Gerbers/drill files don't include the new holes yet. Regenerate everything under
-`fab/` after rerouting is done, before ordering.
+Added two placeholder footprints (`MountingHole_1.152mm` style, PCB-only/mechanical, no net,
+`exclude_from_pos_files`/`exclude_from_bom` like the mounting-hole footprints) so the user can
+position them by hand instead of leaving it to JLCPCB's default placement next order:
 
-- `GERBER-v1-ornament-board.zip` — RS-274X Gerbers (F.Cu, B.Cu, paste, silkscreen, mask ×2, Edge.Cuts)
-  + Excellon drill file + drill map, zipped together per JLCPCB's upload convention. Generated via
-  `kicad-cli pcb export gerbers` / `export drill` (KiCad 10 AppImage), not hand-assembled. Covers
-  the whole 2-layer board regardless of assembly split — fab (bare board manufacture) isn't
-  affected by which side gets machine-assembled.
-- `BOM-v1-ornament-board.csv` — `Comment,Designator,Footprint,LCSC Part #` columns (JLCPCB's exact
-  expected format). **Filtered to front-side-only**: 8 lines / 239 parts (115 LEDs, 115 caps, R1–R3,
-  C123/C124, D122, D124, SW1). The 6 back-side parts (U1, U2, U3, D123, F1, J1) are intentionally
-  excluded — they're not part of this order.
-- `CPL-v1-ornament-board.csv` — `Designator,Mid X,Mid Y,Layer,Rotation` (JLCPCB's exact expected
-  CPL format), also **filtered to front-side-only**: 239 rows, all `Layer=Top`. Generated from
-  `kicad-cli pcb export pos`, reformatted, then filtered by layer — not hand-typed.
+- **TH1** (125, 100) — in the tab, roughly where JLCPCB's own auto-placed hole landed
+- **TH2** (95, 124) — upper-left rim; currently sitting inside the `+5V_LED`/`GND` copper fill (0.25mm
+  hole-clearance DRC error against both zones) since that's the only "empty-ish" nearby space — user
+  will reposition, per [[feedback_kicad_manual_layout]]. `kicad-cli pcb drc` otherwise unchanged (same
+  1 pre-existing `isolated_copper` warning near (112, 98) as before).
 
-**Back-side parts (hand-solder reference, not part of the JLCPCB order)**:
+**Fab package not regenerated for this** — these are placeholders pending the user's final placement.
 
-| Part | Designator | LCSC # | Note |
-|---|---|---|---|
-| MCP73832-2-OT | U3 | C38066 | MCP73832T-2ACI/OT, exact match |
-| 74AHCT1G125 | U2 | C7484 | SN74AHCT1G125DBVR — confirmed this is the *intended* real part (schematic uses the base `74LVC1G125` symbol with `Value` overridden, see "Schematic" above) |
-| SS14 (SMA) | D123 | C112424 | package confirmed SMA/DO-214AC — check polarity by hand, not machine-placed |
-| FSMD100-1206R | F1 | C220149 | already known from PTC sourcing |
-| JST S2B-PH-SM4-TB | J1 | C295747 | exact match to the footprint in use |
-| Xiao SAMD21 | U1 | **none** | Seeed-branded module, not an LCSC-stocked part — always hand-solder, this was never a JLCPCB-assemblable part regardless of the front/back split |
+## Fabrication package (regenerated 2026-08-16)
 
-**Front-side (JLCPCB order) LCSC part sourcing** (verified via WebSearch against LCSC/JLCPCB
-listings, not guessed):
+Complete JLCPCB fab + assembly package under `fab/`, regenerated from the current live board state
+(mounting holes removed, U2/U3/F1 now front, MP-pad GND fix, R1=2.49k, D122=red — all reflected).
+**Assembly split unchanged: JLCPCB assembles the front only; the user hand-solders 3 back-side
+parts.**
+
+- `GERBER-v1-ornament-board.zip` — RS-274X Gerbers (F.Cu, B.Cu, paste, silkscreen, mask ×2,
+  Edge.Cuts) + Excellon drill + drill map, zipped per JLCPCB's upload convention.
+  `kicad-cli pcb export gerbers --layers F.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,
+  F.Mask,B.Mask,Edge.Cuts` (explicit layer list — the tool's default exports every layer including
+  Courtyard/Fab/User/Adhesive/Margin, which JLCPCB doesn't need).
+  **Decorative-artwork silkscreen simplified, 2026-08-16/17**: the traced snowflake-ornament
+  graphic on F.Silkscreen (320 `gr_poly` shapes, ~192,400 points total, several single polygons
+  over 10,000–46,000 points) wasn't going to cause JLCPCB to reject the order — Gerber format and
+  their CAM tooling have no meaningful vertex-count limit at this scale — but the fine vector
+  detail was well past silkscreen printing's real physical resolution floor (~0.15mm line/gap), so
+  most of it wouldn't have reproduced anyway. Ran Ramer–Douglas–Peucker simplification (0.08mm
+  tolerance — conservative, well under the print floor, so nothing visible was traded away) on
+  every polygon with ≥8 points (`gr_poly`s under that were already simple stroke-line segments, left
+  untouched); the tiny <8-point polygons themselves weren't the size problem, so they were skipped.
+  Result: 192,414 → 4,266 points (**97.8% reduction**), `F_Silkscreen.gto` 5.08MB → 231KB, full zip
+  1.25MB → 219KB (below the original pre-decoration 167KB). **Verified, not just trusted the math**:
+  rendered both the pre- and post-simplification F.Silkscreen layer via `kicad-cli pcb export svg` +
+  headless Chrome screenshot and compared them side by side at the same crop/zoom — visually
+  identical. `pcb drc` unchanged after (1 warning/0 errors/0 unconnected, same as before). Original
+  `.kicad_pcb` state saved in the scratchpad before running, in case the user ever wants the
+  full-detail original back — this changes the *rendered/manufactured* result, not something to
+  redo blindly if the user re-imports a fresh version of the artwork later.
+- `BOM-v1-ornament-board.csv` — `Comment,Designator,Footprint,LCSC Part #`, **front-side only**: 10
+  lines / 240 parts (115 LEDs, 116 caps [115 LED decoupling + C122], R1, R2, SW1, D122, U2, U3, F1).
+  Regenerated directly from the live board's footprint list via `pcbnew` (grouped by
+  layer+value+designator), not hand-edited — verified the front/back split and part counts against
+  the board before writing anything.
+- `CPL-v1-ornament-board.csv` — `Designator,Mid X,Mid Y,Layer,Rotation`, front-side only, 240 rows,
+  all `Layer=Top`. From `kicad-cli pcb export pos --side both`, filtered to `Side=top`.
+- `HAND-SOLDER-v1-ornament-board.csv` — **new**, the user's own order list for the 3 back-side
+  parts (J1, D123, U1) — see table below.
+
+**Back-side parts — hand-solder order list (3 parts, matches the user's own count)**. DigiKey part
+numbers added 2026-08-17, verified via WebSearch+WebFetch against real DigiKey product pages
+(specs cross-checked, not assumed from the part number alone):
+
+| Part | Designator | LCSC # | DigiKey # | Note |
+|---|---|---|---|---|
+| JST S2B-PH-SM4-TB | J1 | C295747 | `455-1749-1-ND` | [DigiKey product page](https://www.digikey.com/en/products/detail/jst-sales-america-inc/S2B-PH-SM4-TB/926655) — confirmed JST PH series, 2-position, 2.00mm pitch, SMD, exact match to the footprint in use |
+| SS14 (SMA) | D123 | C112424 | `SS14CT-ND` (onsemi) | [DigiKey product page](https://www.digikey.com/en/products/detail/onsemi/SS14/965474) — confirmed 40V/1A Schottky, DO-214AC/SMA package. Check polarity by hand when soldering. |
+| Xiao SAMD21 | U1 | **none** | **none** | Seeed SKU `102010328`, [product page](https://www.seeedstudio.com/Seeeduino-XIAO-Arduino-Microcontroller-SAMD21-Cortex-M0+-p-4426.html) — not LCSC/DigiKey-stocked, was never a JLCPCB-assemblable part regardless of front/back split |
+
+U2 (level shifter), U3 (charge IC), and F1 (PTC) are **no longer on this list** — they moved to the
+front on 2026-08-16 and are now in the JLCPCB order instead.
+
+**Front-side (JLCPCB order) LCSC part sourcing** (verified via WebSearch/WebFetch against real
+LCSC/JLCPCB listings, not guessed):
 
 | Part | LCSC # | Note |
 |---|---|---|
 | WS2812B-2020-V6 | C52917434 | already known from LED sourcing |
-| SKRHABE010 (SW1) | C139794 | exact match; **has 2 through-hole mechanical pads** alongside SMD electrical pads — may need JLCPCB's mixed-technology/THT assembly option, not pure SMT |
-| 0402 100nF | C309458 | generic/basic part |
-| 0402 1µF | C52923 | generic/basic part |
-| 0402 10k | C25744 | generic/basic part |
-| 0402 1k | C2889341 | generic/basic part |
-| STAT_LED (D122), TRIP_LED (D124) | **none picked** | generic 0603 LED value was never given a specific color — needs the user to pick a color and confirm an LCSC # before ordering, not guessed here |
+| SKRHABE010 (SW1) | C139794 | exact match; **has 2 through-hole mechanical pads** alongside SMD electrical pads — may need JLCPCB's mixed-technology/THT assembly option |
+| 0402 100nF | C309458 | Basic part |
+| 0402 1µF | C52923 | Basic part |
+| 0402 2.49k (R1) | ~~C20164962~~ **C102924** | Originally sourced as YAGEO `RT0402BRB072K49L` (±0.1%, Extended part). **Swapped 2026-08-17** — the user hit a stock-out on that part and proposed RALEC `RTT022491FTH` instead; confirmed via JLCPCB partdetail: 0402, 2.49kΩ, ±1%, and it's a **Basic** part (better than the original — no Extended-part fee). |
+| 0402 1k (R2) | C2889341 | Basic part |
+| KT-0603R (D122, red) | C2286 | Basic part, picked 2026-08-16 |
+| 74AHCT1G125 (U2) | C7484 | SN74AHCT1G125DBVR — the *intended* real part (schematic uses the base `74LVC1G125` symbol with `Value` overridden, see "Schematic" above). Moved to front-side order 2026-08-16. |
+| MCP73832-2-OT (U3) | C38066 | exact match. Moved to front-side order 2026-08-16. |
+| FSMD100-1206R (F1) | C220149 | already known from PTC sourcing. Moved to front-side order 2026-08-16. |
 
 **Known JLCPCB/KiCad gotcha, still worth checking in their checkout preview**: community reports
 confirm KiCad's raw rotation/position export doesn't always match what JLCPCB's placement engine
-expects for certain footprints. Since the order is front-only now, this mainly matters for SW1
-(mixed SMD+THT) — check its orientation in JLCPCB's interactive placement preview before
-finalizing.
+expects for certain footprints. This mainly matters for SW1 (mixed SMD+THT) — check its orientation
+in JLCPCB's interactive placement preview before finalizing.
 
 **PCB is now netlist-linked to the schematic** (the user ran "Update PCB from Schematic" in the GUI).
 That sync initially scattered the LED/cap placement, because the footprints my script had placed
@@ -235,16 +349,37 @@ symbol (real part, real pinout, not hand-derived) rather than the base `MCP73832
 suffix variants extend from — same "avoid embedding an `extends`-based symbol" reasoning as the
 level shifter. Standard Microchip reference-design support components, sized/valued per the
 datasheet's typical application circuit:
-- **R1 = 10kΩ** on PROG→GND: sets charge current via `I_reg[mA] ≈ 1000 / R_PROG[kΩ]`, so 10kΩ ≈
-  100mA. Chosen conservatively (0.5–1C is the standard safe LiPo charge-rate guideline, and no
-  actual cell/capacity has been picked yet) — **revisit once the user picks an actual battery**, this
-  resistor is the one thing that has to match the real cell.
+- **R1 = 2.49kΩ** on PROG→GND: sets charge current via `I_reg[mA] = 1000 / R_PROG[kΩ]`
+  (confirmed against the real MCP73831/2 datasheet, not assumed — DS20001984H, `Rprog` range is
+  2kΩ–67kΩ, programmable current 15mA–500mA). 2.49kΩ (nearest standard E96 1% value) gives
+  ≈401.6mA, matching the user's chosen 2Ah cell's 400mA continuous charge rating (was 10kΩ/100mA,
+  a placeholder from before a real cell was picked). 2kΩ (the IC's ~500mA max) is explicitly
+  footnoted in the datasheet as "not production tested, ensured by design" — 2.49kΩ sits safely
+  inside the characterized range, not at that edge.
+  **Thermal caveat — mitigated as well as the board allows (2026-08-16)**: during charge `VDD` is
+  USB's ~5V (charging only happens with USB present) and early in a cycle `VBAT` can be as low as
+  ~3.0–3.5V, so the pass transistor can dissipate up to ~0.7–0.8W (θJA ≈ 130–230°C/W depending on
+  copper — DS20001984H). Enough to trip the IC's own automatic thermal regulation (a designed-in
+  protection, not a fault) without help. The user tied U3's thermally-relevant pads into the ground
+  plane as well as the board's copper allowance permits, which is the standard mitigation for this
+  package (matches the datasheet's own note that θJA improves substantially with more copper around
+  the part). Real-world charge current/time still may not hit the full 400mA/~5hr figure under
+  thermal regulation — worth confirming with a meter once the board exists, but this is no longer an
+  unaddressed gap.
 - **C123 = 1µF** on VDD→GND (input bypass), **C124 = 1µF** on VBAT→GND (output stability) — both
   0402 imperial, matching the rest of the board's small-part convention.
-- **R2 = 1kΩ + D122 (STAT_LED, 0603)**: charge-status indicator, VDD→R2→LED anode→LED
-  cathode→STAT. STAT sinks (open-drain, active while charging) so the LED lights during charging,
-  off when done/no battery — standard reference-design pattern, not required but cheap and useful
-  feedback for a device that'll be handed to kids.
+- **R2 = 1kΩ + D122 (charge-status indicator, VDD→R2→LED anode→LED cathode→STAT)**. STAT sinks
+  (open-drain, active while charging) so the LED lights during charging, off when done/no battery —
+  standard reference-design pattern, not required but cheap and useful feedback for a device that'll
+  be handed to kids. **Color picked 2026-08-16: red**, part = **KT-0603R** (Hubei Kento, LCSC
+  `C2286`, JLCPCB Basic part, 0603, 615–630nm, Vf 1.8–2.4V @ 20mA test current). Checked R2 against
+  the real part rather than assuming 1kΩ was still fine: during charging `VDD` is USB's ~5V, and at
+  our much lower ~2–3mA drive current (vs. the LED's 20mA-rated test point) Vf will sit below the
+  datasheet's 20mA figure — working out to roughly **2.0–3.3mA** through the LED across
+  USB-tolerance/Vf-spread corners, comfortably inside both the LED's 25mA max and the MCP73832
+  STAT pin's 25mA sink max. That's a modest-but-visible indicator current, not miswired or
+  underdriven — **1kΩ kept as-is**. (680Ω would land closer to ~4mA/brighter if the user ever wants
+  a more obviously-lit indicator; not changed since it wasn't asked for.)
 - **D123 = SS14 Schottky** (SMA, anode→VBATT, cathode→+5V), **1A rated**. Briefly swapped to
   SD103AW (SOD-123, 350mA — the user had them in stock) but reverted back to SS14 once the user decided
   the LED rail should support up to ~1A (see "LED current protection" below) — his battery
@@ -260,15 +395,19 @@ datasheet's typical application circuit:
   Swapped via `scripts/swap_j1_footprint.py` (schematic `Footprint` property text edit + PCB
   `Remove()`+`FootprintLoad()`/`Add()` at the same position/orientation, same pattern as D123's
   package swap — a plain text edit doesn't work PCB-side because PTH/SMD pad geometry differs).
-  The SMD footprint's two extra "MP" pads are mechanical-only (board-edge anchor tabs, no
-  datasheet net) and were left unassigned. `kicad-cli sch erc`/`pcb drc` after the swap: no new
-  J1-related violations (pre-existing LED-grid `pin_to_pin`/silkscreen counts unchanged).
+  The SMD footprint's two extra "MP" pads are mechanical-only (board-edge anchor tabs, confirmed
+  by the user as not connected to the connector's real contacts inside the part) — initially left
+  unassigned, then the user deliberately tied both to `GND` for routing convenience and slightly
+  better board adhesion. That override is PCB-only (no matching schematic pin) and was lost once,
+  presumably to an "Update PCB from Schematic" resync — see "Full re-review" in Status above for the
+  DRC-error trail this caused and how it was diagnosed. `kicad-cli sch erc`/`pcb drc` after the
+  original swap: no new J1-related violations (pre-existing LED-grid `pin_to_pin`/silkscreen counts
+  unchanged).
 
-**⚠ Battery polarity is not verified.** JST-PH 2-pin battery-pack pinout (which wire is + )
-is *not* consistently standardized across manufacturers/cheap SKUs — this is a real, common
-gotcha, not a theoretical one. **Must be checked against the user's actual battery pack before
-ordering/assembling** — a reversed connection on a LiPo is a genuine safety issue (the project's
-own #1 priority), not just a "won't work" issue.
+**✅ Battery polarity verified (2026-08-16).** The user checked J1's pinout against a charger from
+the same vendor as the actual battery pack — resolves what was flagged as a real, common
+reversed-LiPo-connection risk (JST-PH 2-pin pinout isn't standardized across manufacturers). Their
+verification, not independently re-derived here.
 
 **Xiao power caveat (researched, not assumed)**: Seeed's own documentation is explicit that the
 XIAO SAMD21's back-side `VIN`/`GND` pads are *not* designed for a direct battery connection
@@ -440,8 +579,8 @@ against the copper pour — confirmed programmatically instead):
 2. ~~**MCU/joystick physical placement**~~ — resolved, see "PCB: MCU / level shifter / joystick
    placement" above. Only the joystick required carving LED-grid space (6 LEDs removed); the MCU's
    placement didn't touch the grid.
-3. **Battery polarity + charge current**: verify J1 pinout against the actual battery pack, and
-   revisit R1 once a real cell/capacity is chosen (see Battery charging above).
+3. ~~**Battery polarity**~~ — resolved 2026-08-16, verified against a charger from the battery's own
+   vendor. ~~Charge current~~ — resolved, R1=2.49kΩ (~400mA), see above.
 4. **USB+battery-simultaneous caution**: decide whether D123 alone is sufficient mitigation or
    whether usage instructions should tell users not to have both connected at once (see Battery
    charging above) — Seeed's own docs are more cautious about this than a single diode implies.
@@ -449,10 +588,15 @@ against the copper pour — confirmed programmatically instead):
    above.
 6. Board center currently placed at KiCad sheet coords (120, 150) — arbitrary, not meaningful.
 7. ~~**PCB netlist sync needed**~~ — resolved; board is fully routed, see "Routing complete" above.
-8. **PTC sizing unverified against real current draw** — F1's 1A hold current is sized off the
-   datasheet's worst-case-per-LED number, not a measurement. Reconfirm once firmware/animations
-   exist and real board current can be measured.
-9. ~~**Copper pour/GND vias**~~ — resolved, confirmed clean by the post-routing DRC pass above.
+8. **PTC/charger thermal sizing** — F1's 1A hold current and R1's 400mA charge target are both sized
+   off datasheet worst-case numbers, not measurements; U3 is now tied into the ground plane for
+   thermal margin (2026-08-16, the user's mitigation) but real current/temperature under load is
+   still unmeasured. Reconfirm once firmware/animations exist and real board current can be checked
+   with a meter.
+9. ~~**Copper pour/GND vias**~~ — resolved; see #10, the same root cause covered both findings.
+10. ~~**GND via overlapping J1's MP pad**~~ — resolved 2026-08-16, was a lost intentional net
+    override (J1's `MP` pads → `GND`), not a placement bug. See "Full re-review" in Status above.
+    Remember it can get wiped again by a future "Update PCB from Schematic."
 
 ## Tooling note
 
