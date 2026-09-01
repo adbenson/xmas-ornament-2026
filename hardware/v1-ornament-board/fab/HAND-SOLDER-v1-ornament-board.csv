@@ -1,0 +1,4 @@
+Comment,Designator,LCSC Part #,DigiKey Part #,Note
+Battery_JST-PH-2.0,J1,C295747,455-1749-1-ND,"JST S2B-PH-SM4-TB, 2.0mm pitch SMD, https://www.digikey.com/en/products/detail/jst-sales-america-inc/S2B-PH-SM4-TB/926655"
+SS14,D123,C112424,SS14CT-ND,"SS14 Schottky, 40V/1A, SMA/DO-214AC, https://www.digikey.com/en/products/detail/onsemi/SS14/965474"
+XIAO-SAMD21-SMD,U1,,,"Seeed SKU 102010328 - not LCSC/DigiKey stocked, buy from Seeed directly: https://www.seeedstudio.com/Seeeduino-XIAO-Arduino-Microcontroller-SAMD21-Cortex-M0+-p-4426.html"

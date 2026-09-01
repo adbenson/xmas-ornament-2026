@@ -1,6 +1,6 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
-import { Emulator } from './emulator/Emulator'
+import { Emulator } from './pages/Emulator'
 
 function App() {
   return (

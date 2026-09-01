@@ -198,7 +198,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Battery_Management:MCP73832-2-OT"
+		(symbol "Battery_Management:MCP73832-2-MC"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -215,7 +215,7 @@
 					(justify left)
 				)
 			)
-			(property "Value" "MCP73832-2-OT"
+			(property "Value" "MCP73832-2-MC"
 				(at 1.27 6.35 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -226,7 +226,7 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(property "Footprint" "Package_DFN_QFN:DFN-8-1EP_3x2mm_P0.5mm_EP1.7x1.4mm"
 				(at 1.27 -6.35 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -240,7 +240,7 @@
 				)
 			)
 			(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf"
-				(at 0 -18.796 0)
+				(at 0 -18.288 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(hide yes)
@@ -250,7 +250,7 @@
 					)
 				)
 			)
-			(property "Description" "Single cell, Li-Ion/Li-Po charge management controller, 4.20V, Open-Drain Status Output, in SOT23-5 package"
+			(property "Description" "Single cell, Li-Ion/Li-Po charge management controller, 4.20V, Open-Drain Status Output, in DFN-8 package"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -272,7 +272,7 @@
 					)
 				)
 			)
-			(property "ki_fp_filters" "SOT?23*"
+			(property "ki_fp_filters" "DFN*3x2mm*P0.5mm*EP1.7x1.4mm*"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -283,7 +283,7 @@
 					)
 				)
 			)
-			(symbol "MCP73832-2-OT_0_1"
+			(symbol "MCP73832-2-MC_0_1"
 				(rectangle
 					(start -7.62 5.08)
 					(end 7.62 -5.08)
@@ -296,11 +296,12 @@
 					)
 				)
 			)
-			(symbol "MCP73832-2-OT_1_1"
-				(pin open_collector line
-					(at 10.16 -2.54 180)
+			(symbol "MCP73832-2-MC_1_1"
+				(pin passive line
+					(at 0 7.62 270)
 					(length 2.54)
-					(name "STAT"
+					(hide yes)
+					(name "V_{DD}"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -316,9 +317,9 @@
 					)
 				)
 				(pin power_in line
-					(at 0 -7.62 90)
+					(at 0 7.62 270)
 					(length 2.54)
-					(name "V_{SS}"
+					(name "V_{DD}"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -351,10 +352,11 @@
 						)
 					)
 				)
-				(pin power_in line
-					(at 0 7.62 270)
+				(pin passive line
+					(at 10.16 2.54 180)
 					(length 2.54)
-					(name "V_{DD}"
+					(hide yes)
+					(name "V_{BAT}"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -362,6 +364,61 @@
 						)
 					)
 					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 10.16 -2.54 180)
+					(length 2.54)
+					(name "STAT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "V_{SS}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin no_connect line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(hide yes)
+					(name "NC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -379,7 +436,7 @@
 							)
 						)
 					)
-					(number "5"
+					(number "8"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3062,6 +3119,10 @@
 		(uuid "169067fa-f37b-4917-a985-61c860d7e081")
 	)
 	(no_connect
+		(at 452.12 176.53)
+		(uuid "618e3cf1-5197-4f38-9b65-0eca2ec2132a")
+	)
+	(no_connect
 		(at 468.63 140.97)
 		(uuid "6a879d08-d04a-49cf-b0f9-6eefd7003804")
 	)
@@ -3076,10 +3137,6 @@
 	(no_connect
 		(at 495.3 172.72)
 		(uuid "ba723ff5-988e-4b84-a6b9-75fc973c2eb3")
-	)
-	(no_connect
-		(at 452.12 168.91)
-		(uuid "c0e63940-7a83-4a9f-abfd-8fcf58444f72")
 	)
 	(no_connect
 		(at 495.3 176.53)
@@ -4120,7 +4177,7 @@
 	)
 	(wire
 		(pts
-			(xy 223.52 344.17) (xy 215.9 344.17)
+			(xy 222.25 344.17) (xy 215.9 344.17)
 		)
 		(stroke
 			(width 0)
@@ -5047,6 +5104,16 @@
 			(type default)
 		)
 		(uuid "51c33b1d-461e-4456-9a6b-1a788adcab6b")
+	)
+	(wire
+		(pts
+			(xy 445.77 168.91) (xy 452.12 168.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "51ea5d4a-d8b1-43a2-880d-b815459ed783")
 	)
 	(wire
 		(pts
@@ -8890,16 +8957,6 @@
 	)
 	(wire
 		(pts
-			(xy 447.04 176.53) (xy 452.12 176.53)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f5b4adde-1f3f-4289-8632-e5b0bdcd93be")
-	)
-	(wire
-		(pts
 			(xy 92.71 364.49) (xy 92.71 370.84)
 		)
 		(stroke
@@ -10050,6 +10107,15 @@
 		)
 		(uuid "258b6ce4-ab80-439e-a77c-9a9039dfeede")
 	)
+	(label "JOY_UP"
+		(at 445.77 168.91 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "25cd2478-5f10-4ff4-be0d-17711a280c60")
+	)
 	(label "GND"
 		(at 57.15 69.85 0)
 		(effects
@@ -10698,7 +10764,7 @@
 		)
 		(uuid "45de3e1e-63d6-4a95-8efe-f8f754a424d9")
 	)
-	(label "JOY_LEFT"
+	(label "JOY_RIGHT"
 		(at 444.5 153.67 0)
 		(effects
 			(font
@@ -11256,7 +11322,7 @@
 		)
 		(uuid "609a6fc7-a625-4c55-ba3f-9f800635dea7")
 	)
-	(label "JOY_DOWN"
+	(label "JOY_LEFT"
 		(at 444.5 161.29 0)
 		(effects
 			(font
@@ -11778,7 +11844,7 @@
 		)
 		(uuid "7839b349-7ab8-4532-9887-1bbe9bf60665")
 	)
-	(label "JOY_RIGHT"
+	(label "JOY_DOWN"
 		(at 444.5 157.48 0)
 		(effects
 			(font
@@ -13155,15 +13221,6 @@
 		)
 		(uuid "b40f81b6-4dfb-43fc-9b69-2a5b146cf61b")
 	)
-	(label "JOY_UP"
-		(at 447.04 176.53 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "b4a5a338-7837-4b33-818a-ca189383934f")
-	)
 	(label "+5V_LED"
 		(at 161.29 170.18 0)
 		(effects
@@ -13731,7 +13788,7 @@
 		)
 		(uuid "d12e715a-4d7b-416f-87b2-0bab9d3332cd")
 	)
-	(label "JOY_DOWN"
+	(label "JOY_LEFT"
 		(at 166.37 349.25 0)
 		(effects
 			(font
@@ -13848,7 +13905,7 @@
 		)
 		(uuid "d5ad8986-8daa-4deb-a9dc-0c54cdfe4b7c")
 	)
-	(label "JOY_LEFT"
+	(label "JOY_RIGHT"
 		(at 222.25 349.25 0)
 		(effects
 			(font
@@ -14541,8 +14598,8 @@
 		)
 		(uuid "f6b80f0e-7be4-4a34-9268-469a04cfa9df")
 	)
-	(label "JOY_RIGHT"
-		(at 223.52 344.17 0)
+	(label "JOY_DOWN"
+		(at 222.25 344.17 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -32646,7 +32703,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Battery_Management:MCP73832-2-OT")
+		(lib_id "Battery_Management:MCP73832-2-MC")
 		(at 81.28 346.71 0)
 		(unit 1)
 		(body_style 1)
@@ -32666,7 +32723,7 @@
 				)
 			)
 		)
-		(property "Value" "MCP73832-2-OT"
+		(property "Value" "MCP73832-2-MC"
 			(at 81.28 352.71 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -32676,7 +32733,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+		(property "Footprint" "Package_DFN_QFN:DFN-8-1EP_3x2mm_P0.5mm_EP1.7x1.4mm"
 			(at 81.28 346.71 0)
 			(hide yes)
 			(show_name no)
@@ -32710,19 +32767,28 @@
 			)
 		)
 		(pin "1"
-			(uuid "bd3346e3-f557-4532-81ca-20d67a81498f")
+			(uuid "0d95e5c5-535c-4841-88f1-407584bdf7bf")
 		)
 		(pin "2"
-			(uuid "eb4344a7-9c1c-4915-8b94-344c688ade51")
+			(uuid "1e1cf16c-1aad-4d64-b704-8fa8e754f33a")
 		)
 		(pin "3"
-			(uuid "a9968f92-f755-4510-a56f-53e4a05aed14")
+			(uuid "f374df6a-2fd6-4849-91c8-8ab64dc1a213")
 		)
 		(pin "4"
-			(uuid "5f33464b-9f78-4ccf-992d-0bcfe709fc0c")
+			(uuid "5f0d63e9-b903-41e8-bf3d-bc854af03756")
 		)
 		(pin "5"
-			(uuid "d1673cf1-77a5-437b-9fa2-e9c2614aca90")
+			(uuid "5e80d093-50aa-4495-8281-fefe8a7d385f")
+		)
+		(pin "6"
+			(uuid "a4eb5a10-deb4-46c3-a045-e7cac62f228d")
+		)
+		(pin "7"
+			(uuid "843b3b2c-f332-4ae1-94f8-ec6d8f2eea94")
+		)
+		(pin "8"
+			(uuid "1c2c5434-7181-487f-9839-3e927f01c8fe")
 		)
 		(instances
 			(project "v1-ornament-board"

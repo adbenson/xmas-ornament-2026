@@ -7,6 +7,15 @@ fp-info-cache
 hardware/v0-test-board/
 hardware/v1-ornament-board/kicad/.history/
 
+# Personal ordering/invoice docs - not for the repo
+hardware/v1-ornament-board/ordering-docs/
+
+# KiCad manual pre-edit snapshots
+*.bak
+
+# Local full-project backup archive
+/xmas2026.zip
+
 # Python bytecode cache
 __pycache__/
 *.pyc
